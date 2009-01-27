@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="?android:attr/listPreferredItemHeight">
+
+    <ImageView android:id="@+id/build_status_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dip"
+        android:layout_marginLeft="4dip"
+    />
+
+    <TextView android:id="@+id/line1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/build_status_icon"
+        android:layout_marginTop="6dip"
+        android:layout_marginLeft="10dip"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:singleLine="true"
+    />
+
+    <TextView android:id="@+id/status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/line1"
+
+        android:layout_marginLeft="4dip"
+        android:layout_centerVertical="true"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:singleLine="true"
+    />
+
+    <TextView android:id="@+id/date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/line1"
+        
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="8dip"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:singleLine="true"
+    />
+
+</RelativeLayout>

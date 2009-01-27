@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hudson Monitor</string>
+    <string name="app_url">http://xlv-labs.com/android/hudsonmonitor</string>
+
+    <string name="buildHistory_empty">Build History is empty.</string>
+	
+    <string name="menu_about">About</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_refresh">Refresh</string>
+
+    <string name="about_title">Hudson Monitor</string>
+    <string name="about_description">This application monitors the status of builds on one or more Hudson CI servers</string>
+
+    <string name="about_button_visit_site">Open Web Site</string>
+    <string name="about_button_close">Close</string>
+
+    <string name="preferences_name">Preferences</string>
+
+    <string name="preferences_refresh_title">Refresh Rate Settings</string>
+    <string name="preferences_refresh_rate">Refresh Rate</string>
+    <string name="preferences_wakeup_phone">Refresh When Sleeping</string>
+
+    <string name="preferences_notifications_title">Notification Settings</string>
+    <string name="preferences_enable_notifications_title">Enable Notifications</string>
+    <string name="preferences_select_ringtone_title">Select ringtone</string>
+    <string name="preferences_vibrate">Vibrate</string>
+
+    <string name="preferences_misc_title">Misc. Preferences</string>
+    <string name="preferences_server_url">Server URL</string>
+    <string name="preferences_green_for_success_title">Use Green For Success</string>
+    <string name="preferences_debug_mode">Debug Mode</string>
+
+    <string name="preferences_servers">Server List</string>
+    <string name="preferences_add_server">Add Server</string>
+
+</resources>

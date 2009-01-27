@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+  <PreferenceCategory android:title="@string/preferences_notifications_title">
+    <CheckBoxPreference
+        android:key="preferences_enable_notifications"
+        android:defaultValue="true"
+        android:title="@string/preferences_enable_notifications_title"/>
+        
+    <RingtonePreference
+        android:layout="?android:attr/preferenceLayoutChild"
+        android:key="preferences_ringtone"
+        android:title="@string/preferences_select_ringtone_title"
+        android:ringtoneType="notification"
+        android:defaultValue="content://settings/system/notification_sound" />
+    <CheckBoxPreference
+        android:key="preferences_vibrate"
+        android:defaultValue="false"
+        android:title="@string/preferences_vibrate"/>
+  </PreferenceCategory>
+
+  <PreferenceCategory android:title="@string/preferences_refresh_title">
+    <ListPreference
+	        android:key="preferences_refresh_rate"
+	        android:title="@string/preferences_refresh_rate"
+	        android:entries="@array/refresh_rate_entries"
+	        android:entryValues="@array/refresh_rate_values"
+	        android:defaultValue="5"/>
+    <CheckBoxPreference
+        android:key="preferences_wakeup_phone"
+        android:defaultValue="true"
+        android:title="@string/preferences_wakeup_phone"/>
+  </PreferenceCategory>
+
+  <PreferenceCategory android:title="@string/preferences_misc_title">
+    <EditTextPreference
+        android:title="@string/preferences_server_url"
+        android:dialogTitle="@string/preferences_server_url"
+        android:key="preferences_server_url"
+        android:defaultValue="http://hudson.xlv-labs.com/rssLatest"
+        android:singleLine="false"
+        />
+    <CheckBoxPreference
+        android:key="preferences_green_for_success"
+        android:defaultValue="false"
+        android:title="@string/preferences_green_for_success_title"/>
+    <CheckBoxPreference
+        android:key="preferences_debug_mode"
+        android:defaultValue="false"
+        android:title="@string/preferences_debug_mode"/>
+  </PreferenceCategory>
+
+</PreferenceScreen>
