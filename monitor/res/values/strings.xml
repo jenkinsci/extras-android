@@ -30,6 +30,7 @@
     <string name="preferences_server_url">Server URL</string>
     <string name="preferences_green_for_success_title">Use Green For Success</string>
     <string name="preferences_debug_mode">Debug Mode</string>
+    <string name="preferences_check_for_updates">Check for updates</string>
 
     <string name="preferences_servers">Server List</string>
     <string name="preferences_add_server">Add Server</string>

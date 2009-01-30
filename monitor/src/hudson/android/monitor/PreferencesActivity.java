@@ -1,6 +1,5 @@
 package hudson.android.monitor;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
@@ -29,6 +28,8 @@ public final class PreferencesActivity extends android.preference.PreferenceActi
 
     public static final String DEFAULT_REFRESH_RATE = "5";
 
+    public static final String AUTOMATIC_CHECK_FOR_UPDATES = "preferences_check_for_updates";
+
     public static final String SERVER_URL = "preferences_server_url";
 
     @Deprecated
@@ -48,7 +49,8 @@ public final class PreferencesActivity extends android.preference.PreferenceActi
     }
 
     public void onSharedPreferenceChanged(final SharedPreferences sharedPreferences, final String key) {
-        startService(new Intent(this, UpdateService.class));
+        // Update service has its own listener
+        // startService(new Intent(this, UpdateService.class));
     }
 
 }

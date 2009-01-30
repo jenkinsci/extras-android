@@ -19,6 +19,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Handler;
@@ -34,7 +37,7 @@ import android.widget.Toast;
  *
  */
 
-public class UpdateService extends Service {
+public class UpdateService extends Service implements OnSharedPreferenceChangeListener {
 
     private final IBinder binder = new UpdateServiceBinder();
 
@@ -42,7 +45,13 @@ public class UpdateService extends Service {
 
     private AlarmReceiver alarmReceiver;
 
-    private PendingIntent pendingAlarmIntent;
+    private PendingIntent pendingRefreshIntent;
+
+    private PendingIntent pendingUpdateCheckIntent;
+
+    private long lastRefreshDate;
+
+    private long lastUpdateCheckDate;
 
     private final RefreshTask refreshTask = new RefreshTask();
 
@@ -52,16 +61,33 @@ public class UpdateService extends Service {
 
     public static final String NEW_FEED_DATA = "New_Feed_Data";
 
-    public static final String ALARM_ACTION = "Alarm Action";
+    public static final String REFRESH_FEED_ACTION = "Refresh Feed Action";
+
+    public static final String UPDATE_CHECK_ACTION = "Update Check Action";
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        initAlarm();
+        if (Config.LOGD) {
+            Log.d(Util.LOG_TAG, "Starting update service");
+        }
 
-        // force a refresh when service is created
-        startRefresh();
+        initAlarms();
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(UpdateService.this);
+        prefs.registerOnSharedPreferenceChangeListener(this);
+
+        setRefreshFeedAlarm();
+        setUpdateCheckAlarm();
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(final SharedPreferences sharedPreferences, final String key) {
+        setRefreshFeedAlarm();
+        setUpdateCheckAlarm();
+
+        // FIXME: change server url change to force immediate refresh
     }
 
     @Override
@@ -71,33 +97,144 @@ public class UpdateService extends Service {
         super.onDestroy();
     }
 
-    private void initAlarm() {
+    private void initAlarms() {
         IntentFilter filter;
-        filter = new IntentFilter(ALARM_ACTION);
         alarmReceiver = new AlarmReceiver();
+
+        filter = new IntentFilter(REFRESH_FEED_ACTION);
+        registerReceiver(alarmReceiver, filter);
+
+        filter = new IntentFilter(UPDATE_CHECK_ACTION);
         registerReceiver(alarmReceiver, filter);
     }
 
-    private void setAlarm(final boolean wakeup, final long time) {
-        int alarmType = wakeup ? AlarmManager.RTC_WAKEUP : AlarmManager.RTC;
-        Intent intent = new Intent(ALARM_ACTION);
-        pendingAlarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
-
+    private void setRefreshFeedAlarm() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(UpdateService.this);
+        String rateString = prefs.getString(PreferencesActivity.REFRESH_RATE, PreferencesActivity.DEFAULT_REFRESH_RATE);
         AlarmManager mgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        mgr.set(alarmType, time, pendingAlarmIntent);
+        if (PreferencesActivity.REFRESH_RATE_NEVER.equals(rateString)) {
+            // disable refresh
+            if (pendingRefreshIntent != null) {
+                if (Config.LOGD) {
+                    Log.d(Util.LOG_TAG, "Disabling refresh alarm");
+                }
+
+                mgr.cancel(pendingRefreshIntent);
+                pendingRefreshIntent = null;
+            }
+        } else {
+            // schedule reset
+            boolean wakeup = prefs.getBoolean(PreferencesActivity.WAKEUP_PHONE, true);
+            long refreshRate = Long.parseLong(rateString) * Util.MINUTE_IN_MILLISECONDS;
+
+            Intent intent = new Intent(REFRESH_FEED_ACTION);
+            pendingRefreshIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+            int alarmType = wakeup ? AlarmManager.RTC_WAKEUP : AlarmManager.RTC;
+            long date = lastRefreshDate + refreshRate;
+            mgr.set(alarmType, date, pendingRefreshIntent);
+
+            if (Config.LOGD) {
+                Log.d(Util.LOG_TAG, "Refresh rate scheduled for " + new Date(date));
+            }
+        }
+    }
+
+    private void setUpdateCheckAlarm() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(UpdateService.this);
+        AlarmManager mgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        if (prefs.getBoolean(PreferencesActivity.AUTOMATIC_CHECK_FOR_UPDATES, true)) {
+            // schedule update check
+            Intent intent = new Intent(UPDATE_CHECK_ACTION);
+            pendingUpdateCheckIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+            int alarmType = AlarmManager.RTC;
+            long date = lastUpdateCheckDate + Util.DAY_IN_MILLISECONDS;
+            mgr.set(alarmType, date, pendingUpdateCheckIntent);
+
+            if (Config.LOGD) {
+                Log.d(Util.LOG_TAG, "Update check scheduled for " + new Date(date));
+            }
+        } else {
+            // disable refresh
+            if (pendingUpdateCheckIntent != null) {
+                if (Config.LOGD) {
+                    Log.d(Util.LOG_TAG, "Disabling update check alarm");
+                }
+
+                mgr.cancel(pendingUpdateCheckIntent);
+                pendingUpdateCheckIntent = null;
+            }
+        }
     }
 
     public class AlarmReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(final Context context, final Intent intent) {
-            startRefresh();
+            String action = intent.getAction();
+            if (action.equals(REFRESH_FEED_ACTION)) {
+                startRefreshFeed();
+            } else if (action.equals(UPDATE_CHECK_ACTION)) {
+                startUpdateCheck();
+            } else {
+                Log.e(Util.LOG_TAG, "Invalid intent " + action);
+            }
         }
     }
 
-    private void startRefresh() {
+    private void startUpdateCheck() {
+        if (Config.LOGD) {
+            Log.d(Util.LOG_TAG, "Starting update check");
+        }
+
+        lastUpdateCheckDate = System.currentTimeMillis();
+
+        String s[] = Util.getLatestVersion();
+
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(Util.PACKAGE_NAME, 0);
+            int onlineVersion = Integer.parseInt(s[0]);
+            if (onlineVersion > info.versionCode) {
+                final String newVersion = s[1];
+                final String currentVersion = info.versionName;
+
+                handler.post(new Runnable() {
+                    public void run() {
+                        Context context = getApplicationContext();
+
+                        NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                        int iconId = R.drawable.icon_32;
+                        // FIXME localize
+                        StringBuilder title = new StringBuilder("Update available: ").append(newVersion);
+                        StringBuilder text = new StringBuilder("Installed version: ").append(currentVersion);
+
+                        Intent intent = new Intent().setAction(Intent.ACTION_VIEW);
+                        intent.setData(Uri.parse(Util.MARKET_URL));
+                        PendingIntent contentIntent = PendingIntent.getActivity(context, 0, intent, 0);
+
+                        Notification notification = new Notification(iconId, title, System.currentTimeMillis());
+                        notification.setLatestEventInfo(context, title, text, contentIntent);
+                        int id = 2;
+                        mNotificationManager.notify(id, notification);
+
+                    }
+                });
+            }
+            // schedule next check
+            setUpdateCheckAlarm();
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e(Util.LOG_TAG, "IllegalState: call on current package", e);
+        }
+    }
+
+    private void startRefreshFeed() {
+        if (Config.LOGD) {
+            Log.d(Util.LOG_TAG, "Starting refresh feed");
+        }
+
         // cancel any pending alarm as refresh may be activated early
         AlarmManager mgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        mgr.cancel(pendingAlarmIntent);
+        mgr.cancel(pendingRefreshIntent);
+
+        lastRefreshDate = System.currentTimeMillis();
 
         Thread thread = new Thread(null, refreshTask, "Refresh Task");
         thread.start();
@@ -106,8 +243,6 @@ public class UpdateService extends Service {
     private class RefreshTask implements Runnable {
         @Override
         public void run() {
-            long startTime = java.lang.System.currentTimeMillis();
-
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(UpdateService.this);
             boolean debugMode = prefs.getBoolean(PreferencesActivity.DEBUG_MODE, false);
 
@@ -131,12 +266,8 @@ public class UpdateService extends Service {
                 Log.e(Util.LOG_TAG, "Feed Data Parsing", e.getCause());
             }
 
-            String rateString = prefs.getString(PreferencesActivity.REFRESH_RATE, PreferencesActivity.DEFAULT_REFRESH_RATE);
-            if (!PreferencesActivity.REFRESH_RATE_NEVER.equals(rateString)) {
-                boolean wakeup = prefs.getBoolean(PreferencesActivity.WAKEUP_PHONE, true);
-                long refreshRate = Long.parseLong(rateString) * Util.MINUTE_IN_MILLISECONDS;
-                setAlarm(wakeup, startTime + refreshRate);
-            }
+            // schedule next check
+            setRefreshFeedAlarm();
 
             boolean notificationsEnabled = prefs.getBoolean(PreferencesActivity.NOTIFICATION_ENABLED, true);
             if (notificationsEnabled) {
@@ -229,7 +360,7 @@ public class UpdateService extends Service {
                 Date d = list.get(0).getDate();
                 HudsonMonitorApplication.setLastUpdate(d.getTime());
                 if (Config.LOGD) {
-                    Log.d(Util.LOG_TAG, "feed updated at " + d.toLocaleString());
+                    Log.d(Util.LOG_TAG, "feed last updated at " + d.toLocaleString());
                 }
             }
         }
@@ -239,10 +370,7 @@ public class UpdateService extends Service {
     public void onStart(final Intent intent, final int startId) {
         super.onStart(intent, startId);
 
-        // FIXME: check whether refresh should be forced (refresh button,
-        // server change) or if timer should be adjusted (refresh rate changed)
-
-        startRefresh();
+        startRefreshFeed();
     }
 
     public class UpdateServiceBinder extends Binder {

@@ -44,6 +44,10 @@
         android:defaultValue="false"
         android:title="@string/preferences_green_for_success_title"/>
     <CheckBoxPreference
+        android:key="preferences_check_for_updates"
+        android:defaultValue="true"
+        android:title="@string/preferences_check_for_updates"/>
+    <CheckBoxPreference
         android:key="preferences_debug_mode"
         android:defaultValue="false"
         android:title="@string/preferences_debug_mode"/>

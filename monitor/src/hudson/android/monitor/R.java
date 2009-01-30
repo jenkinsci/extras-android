@@ -45,7 +45,8 @@ public final class R {
         public static final int menu_about=0x7f060003;
         public static final int menu_refresh=0x7f060005;
         public static final int menu_settings=0x7f060004;
-        public static final int preferences_add_server=0x7f060017;
+        public static final int preferences_add_server=0x7f060018;
+        public static final int preferences_check_for_updates=0x7f060016;
         public static final int preferences_debug_mode=0x7f060015;
         public static final int preferences_enable_notifications_title=0x7f06000f;
         public static final int preferences_green_for_success_title=0x7f060014;
@@ -56,7 +57,7 @@ public final class R {
         public static final int preferences_refresh_title=0x7f06000b;
         public static final int preferences_select_ringtone_title=0x7f060010;
         public static final int preferences_server_url=0x7f060013;
-        public static final int preferences_servers=0x7f060016;
+        public static final int preferences_servers=0x7f060017;
         public static final int preferences_vibrate=0x7f060011;
         public static final int preferences_wakeup_phone=0x7f06000d;
     }

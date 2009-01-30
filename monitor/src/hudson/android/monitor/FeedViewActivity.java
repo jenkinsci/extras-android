@@ -19,6 +19,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Config;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -34,8 +35,6 @@ import android.widget.SimpleAdapter;
 
 public class FeedViewActivity extends ListActivity {
 
-    private static final String PACKAGE_NAME = "hudson.android.monitor";
-
     private static final int REFRESH_ID = Menu.FIRST;
     private static final int SETTINGS_ID = Menu.FIRST + 1;
     private static final int ABOUT_ID = Menu.FIRST + 2;
@@ -46,7 +45,9 @@ public class FeedViewActivity extends ListActivity {
     protected void onCreate(final Bundle state) {
         super.onCreate(state);
 
-        Log.i(Util.LOG_TAG, "Starting HudsonMonitor activity");
+        if (Config.LOGD) {
+            Log.d(Util.LOG_TAG, "Starting HudsonMonitor activity");
+        }
 
         setContentView(R.layout.build_history);
         getListView().setOnCreateContextMenuListener(this);
@@ -111,6 +112,10 @@ public class FeedViewActivity extends ListActivity {
     protected void onResume() {
         super.onResume();
 
+        if (Config.LOGD) {
+            Log.d(Util.LOG_TAG, "FeedViewActivity onResume");
+        }
+
         IntentFilter filter;
         filter = new IntentFilter(UpdateService.NEW_FEED_DATA);
         receiver = new FeedDataReceiver();
@@ -121,6 +126,10 @@ public class FeedViewActivity extends ListActivity {
 
     @Override
     protected void onPause() {
+        if (Config.LOGD) {
+            Log.d(Util.LOG_TAG, "FeedViewActivity onPause");
+        }
+
         unregisterReceiver(receiver);
 
         super.onPause();
@@ -135,15 +144,12 @@ public class FeedViewActivity extends ListActivity {
         return true;
     }
 
-    private void requestRefreshAction() {
-        startService(new Intent(this, UpdateService.class));
-    }
-
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
         switch (item.getItemId()) {
         case REFRESH_ID: {
-            requestRefreshAction();
+            // request refresh
+            startService(new Intent(this, UpdateService.class));
             break;
         }
         case SETTINGS_ID: {
@@ -158,7 +164,7 @@ public class FeedViewActivity extends ListActivity {
 
             StringBuffer title = new StringBuffer(getString(R.string.about_title));
             try {
-                PackageInfo info = getPackageManager().getPackageInfo(PACKAGE_NAME, 0);
+                PackageInfo info = getPackageManager().getPackageInfo(Util.PACKAGE_NAME, 0);
                 title.append(' ').append(info.versionName);
             } catch (PackageManager.NameNotFoundException e) {
                 Log.e(Util.LOG_TAG, "IllegalState: call on current package", e);
