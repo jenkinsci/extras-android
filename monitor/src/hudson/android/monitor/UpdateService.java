@@ -3,6 +3,7 @@ package hudson.android.monitor;
 import hudson.android.monitor.model.BuildData;
 import hudson.android.monitor.model.Feed;
 import hudson.android.monitor.model.FeedData;
+import hudson.android.monitor.model.FeedParser;
 
 import java.util.Date;
 import java.util.List;
@@ -120,7 +121,7 @@ public class UpdateService extends Service {
             Feed f = new Feed(1, serverName, serverURL);
 
             try {
-                FeedData data = f.parseHistory();
+                FeedData data = FeedParser.parseHistory(f.getUrl());
 
                 HudsonMonitorApplication.setFeedData(data);
 
