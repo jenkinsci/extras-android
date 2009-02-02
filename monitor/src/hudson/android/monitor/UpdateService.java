@@ -187,12 +187,14 @@ public class UpdateService extends Service implements OnSharedPreferenceChangeLi
 
         lastUpdateCheckDate = System.currentTimeMillis();
 
-        String s[] = Util.getLatestVersion();
-
         try {
             PackageInfo info = getPackageManager().getPackageInfo(Util.PACKAGE_NAME, 0);
+
+            int installedVersion = info.versionCode;
+            String s[] = Util.getLatestVersion(installedVersion);
+
             int onlineVersion = Integer.parseInt(s[0]);
-            if (onlineVersion > info.versionCode) {
+            if (onlineVersion > installedVersion) {
                 final String newVersion = s[1];
                 final String currentVersion = info.versionName;
 

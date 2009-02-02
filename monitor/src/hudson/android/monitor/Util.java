@@ -23,7 +23,7 @@ public final class Util {
 
     public static final String LOG_TAG = "HudsonMonitor";
 
-    public static final String UPDATE_URL = "http://xlv-labs.com/android/hudsonmonitor/latest";
+    public static final String UPDATE_URL = "http://xlv-labs.com/android/hudsonmonitor/latest?version=";
 
     private Util() {
     }
@@ -55,13 +55,13 @@ public final class Util {
         }
     }
 
-    public static String[] getLatestVersion() {
+    public static String[] getLatestVersion(int installedVersion) {
         String[] a = new String[2];
         try {
             URL url;
             URLConnection urlConn = null;
 
-            url = new URL(UPDATE_URL);
+            url = new URL(UPDATE_URL + installedVersion);
             urlConn = url.openConnection();
 
             BufferedReader r = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
