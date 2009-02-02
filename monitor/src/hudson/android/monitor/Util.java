@@ -5,11 +5,22 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import android.util.Log;
 
@@ -74,6 +85,53 @@ public final class Util {
             a[0] = "0";
         }
         return a;
+    }
+
+    static {
+        // Make sure self signed certificates are accepted
+        try {
+            javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            });
+
+            TrustManager[] dummyTrustManager = new TrustManager[] { new X509TrustManager() {
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[] {};
+                }
+
+                public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+                }
+
+                public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+                }
+            } };
+
+            SSLContext context = SSLContext.getInstance("TLS");
+            context.init(null, dummyTrustManager, new SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
+        } catch (NoSuchAlgorithmException e) {
+            Log.e(LOG_TAG, "self signed certificate", e);
+        } catch (KeyManagementException e) {
+            Log.e(LOG_TAG, "self signed certificate", e);
+        }
+    }
+
+    public static URLConnection getURLConnection(String urlString, String userName, String password) throws MonitorException {
+        try {
+            URL url = new URL(urlString);
+            URLConnection urlConn = url.openConnection();
+
+            if (userName.length() != 0) {
+                String auth = Base64.encodeBytes((userName + ':' + password).getBytes());
+                urlConn.setRequestProperty("Authorization", "Basic " + auth);
+            }
+
+            return urlConn;
+        } catch (IOException e) {
+            throw new MonitorException("Connection problem", e);
+        }
     }
 
 }

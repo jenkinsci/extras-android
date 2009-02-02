@@ -31,6 +31,8 @@ public final class PreferencesActivity extends android.preference.PreferenceActi
     public static final String AUTOMATIC_CHECK_FOR_UPDATES = "preferences_check_for_updates";
 
     public static final String SERVER_URL = "preferences_server_url";
+    public static final String SERVER_USERNAME = "preferences_server_username";
+    public static final String SERVER_PASSWORD = "preferences_server_password";
 
     @Deprecated
     public static final String DEFAULT_FEED_NAME = "XLV Labs";

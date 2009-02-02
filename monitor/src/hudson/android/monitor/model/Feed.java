@@ -17,10 +17,16 @@ public class Feed {
 
     private final String url;
 
-    public Feed(final int id, final String name, final String url) {
+    private final String userName;
+
+    private final String password;
+
+    public Feed(final int id, final String name, final String url, final String userName, final String password) {
         this.id = id;
         this.name = name;
         this.url = url;
+        this.userName = userName;
+        this.password = password;
     }
 
     public int getId() {
@@ -33,6 +39,14 @@ public class Feed {
 
     public String getUrl() {
         return url;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public String getPassword() {
+        return password;
     }
 
     public boolean isIgnored() {

@@ -1,9 +1,9 @@
 package hudson.android.monitor.model;
 
 import hudson.android.monitor.MonitorException;
+import hudson.android.monitor.Util;
 
 import java.io.IOException;
-import java.net.URL;
 import java.net.URLConnection;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,13 +39,13 @@ public final class FeedParser extends DefaultHandler {
     private FeedParser() {
     }
 
-    public static FeedData parseHistory(String feedUrl) throws MonitorException {
+    public static FeedData parseHistory(Feed feed) throws MonitorException {
         try {
-            URL url;
-            URLConnection urlConn = null;
+            String feedUrl = feed.getUrl();
+            String userName = feed.getUserName();
+            String password = feed.getPassword();
 
-            url = new URL(feedUrl);
-            urlConn = url.openConnection();
+            URLConnection urlConn = Util.getURLConnection(feedUrl, userName, password);
 
             SAXParserFactory f = SAXParserFactory.newInstance();
             SAXParser parser = f.newSAXParser();

@@ -32,13 +32,32 @@
   </PreferenceCategory>
 
   <PreferenceCategory android:title="@string/preferences_misc_title">
-    <EditTextPreference
-        android:title="@string/preferences_server_url"
-        android:dialogTitle="@string/preferences_server_url"
-        android:key="preferences_server_url"
-        android:defaultValue="http://hudson.xlv-labs.com/rssLatest"
-        android:singleLine="false"
-        />
+    <PreferenceScreen
+        android:title="@string/preferences_server_settings"
+        android:key="preferences_server_settings" >
+      <EditTextPreference
+          android:title="@string/preferences_server_url"
+          android:dialogTitle="@string/preferences_server_url"
+          android:key="preferences_server_url"
+          android:defaultValue="http://hudson.xlv-labs.com/rssLatest"
+          android:singleLine="false"
+          />
+      <EditTextPreference
+          android:title="@string/preferences_server_username"
+          android:dialogTitle="@string/preferences_server_username"
+          android:key="preferences_server_username"
+          android:defaultValue=""
+          android:singleLine="true"
+          />
+      <EditTextPreference
+          android:title="@string/preferences_server_password"
+          android:dialogTitle="@string/preferences_server_password"
+          android:key="preferences_server_password"
+          android:defaultValue=""
+          android:singleLine="true"
+          android:password="true"
+          />
+    </PreferenceScreen>
     <CheckBoxPreference
         android:key="preferences_green_for_success"
         android:defaultValue="false"

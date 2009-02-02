@@ -263,11 +263,13 @@ public class UpdateService extends Service implements OnSharedPreferenceChangeLi
 
             String serverName = PreferencesActivity.DEFAULT_FEED_NAME;
             String serverURL = prefs.getString(PreferencesActivity.SERVER_URL, PreferencesActivity.DEFAULT_FEED_URL);
+            String userName = prefs.getString(PreferencesActivity.SERVER_USERNAME, "");
+            String password = prefs.getString(PreferencesActivity.SERVER_PASSWORD, "");
 
-            Feed f = new Feed(1, serverName, serverURL);
+            Feed f = new Feed(1, serverName, serverURL, userName, password);
 
             try {
-                FeedData data = FeedParser.parseHistory(f.getUrl());
+                FeedData data = FeedParser.parseHistory(f);
 
                 HudsonMonitorApplication.setFeedData(data);
 
