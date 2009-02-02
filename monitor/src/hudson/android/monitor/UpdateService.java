@@ -8,6 +8,8 @@ import hudson.android.monitor.model.FeedParser;
 import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import android.app.AlarmManager;
 import android.app.Notification;
@@ -53,6 +55,8 @@ public class UpdateService extends Service implements OnSharedPreferenceChangeLi
 
     private long lastUpdateCheckDate;
 
+    private final ExecutorService backgroundExecutor = Executors.newFixedThreadPool(1);
+
     private final RefreshTask refreshTask = new RefreshTask();
 
     private final Runnable guiNotificationsTask = new GuiNotificationTask();
@@ -93,6 +97,8 @@ public class UpdateService extends Service implements OnSharedPreferenceChangeLi
     @Override
     public void onDestroy() {
         unregisterReceiver(alarmReceiver);
+
+        backgroundExecutor.shutdownNow();
 
         super.onDestroy();
     }
@@ -187,44 +193,48 @@ public class UpdateService extends Service implements OnSharedPreferenceChangeLi
 
         lastUpdateCheckDate = System.currentTimeMillis();
 
-        try {
-            PackageInfo info = getPackageManager().getPackageInfo(Util.PACKAGE_NAME, 0);
+        backgroundExecutor.submit(new Runnable() {
+            public void run() {
+                try {
+                    PackageInfo info = getPackageManager().getPackageInfo(Util.PACKAGE_NAME, 0);
 
-            int installedVersion = info.versionCode;
-            String s[] = Util.getLatestVersion(installedVersion);
+                    int installedVersion = info.versionCode;
+                    String s[] = Util.getLatestVersion(installedVersion);
 
-            int onlineVersion = Integer.parseInt(s[0]);
-            if (onlineVersion > installedVersion) {
-                final String newVersion = s[1];
-                final String currentVersion = info.versionName;
+                    int onlineVersion = Integer.parseInt(s[0]);
+                    if (onlineVersion > installedVersion) {
+                        final String newVersion = s[1];
+                        final String currentVersion = info.versionName;
 
-                handler.post(new Runnable() {
-                    public void run() {
-                        Context context = getApplicationContext();
+                        handler.post(new Runnable() {
+                            public void run() {
+                                Context context = getApplicationContext();
 
-                        NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                        int iconId = R.drawable.icon_32;
-                        // FIXME localize
-                        StringBuilder title = new StringBuilder("Update available: ").append(newVersion);
-                        StringBuilder text = new StringBuilder("Installed version: ").append(currentVersion);
+                                NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                                int iconId = R.drawable.icon_32;
+                                // FIXME localize
+                                StringBuilder title = new StringBuilder("Update available: ").append(newVersion);
+                                StringBuilder text = new StringBuilder("Installed version: ").append(currentVersion);
 
-                        Intent intent = new Intent().setAction(Intent.ACTION_VIEW);
-                        intent.setData(Uri.parse(Util.MARKET_URL));
-                        PendingIntent contentIntent = PendingIntent.getActivity(context, 0, intent, 0);
+                                Intent intent = new Intent().setAction(Intent.ACTION_VIEW);
+                                intent.setData(Uri.parse(Util.MARKET_URL));
+                                PendingIntent contentIntent = PendingIntent.getActivity(context, 0, intent, 0);
 
-                        Notification notification = new Notification(iconId, title, System.currentTimeMillis());
-                        notification.setLatestEventInfo(context, title, text, contentIntent);
-                        int id = 2;
-                        mNotificationManager.notify(id, notification);
+                                Notification notification = new Notification(iconId, title, System.currentTimeMillis());
+                                notification.setLatestEventInfo(context, title, text, contentIntent);
+                                int id = 2;
+                                mNotificationManager.notify(id, notification);
 
+                            }
+                        });
                     }
-                });
+                    // schedule next check
+                    setUpdateCheckAlarm();
+                } catch (PackageManager.NameNotFoundException e) {
+                    Log.e(Util.LOG_TAG, "IllegalState: call on current package", e);
+                }
             }
-            // schedule next check
-            setUpdateCheckAlarm();
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.e(Util.LOG_TAG, "IllegalState: call on current package", e);
-        }
+        });
     }
 
     private void startRefreshFeed() {
@@ -238,8 +248,7 @@ public class UpdateService extends Service implements OnSharedPreferenceChangeLi
 
         lastRefreshDate = System.currentTimeMillis();
 
-        Thread thread = new Thread(null, refreshTask, "Refresh Task");
-        thread.start();
+        backgroundExecutor.submit(refreshTask);
     }
 
     private class RefreshTask implements Runnable {
