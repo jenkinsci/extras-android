@@ -163,15 +163,17 @@ public class FeedViewActivity extends ListActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
             StringBuffer title = new StringBuffer(getString(R.string.about_title));
+            StringBuffer msg = new StringBuffer();
             try {
                 PackageInfo info = getPackageManager().getPackageInfo(Util.PACKAGE_NAME, 0);
-                title.append(' ').append(info.versionName);
+                msg.append("Version ").append(info.versionName).append("\n\n");
             } catch (PackageManager.NameNotFoundException e) {
                 Log.e(Util.LOG_TAG, "IllegalState: call on current package", e);
             }
+            msg.append(getString(R.string.about_description)).append("\n\n").append(getString(R.string.app_url));
 
             builder.setTitle(title);
-            builder.setMessage(getString(R.string.about_description) + "\n\n" + getString(R.string.app_url));
+            builder.setMessage(msg);
             builder.setIcon(R.drawable.icon_32);
             builder.setPositiveButton(R.string.about_button_visit_site, new DialogInterface.OnClickListener() {
                 public void onClick(final DialogInterface dialogInterface, final int i) {
