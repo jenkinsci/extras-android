@@ -1,6 +1,9 @@
 <?xml version="1.0" ?>
 <project name="HudsonMonitor" default="debug">
 
+    <!-- user level properties (to store passwords for instance) -->
+    <property file="${user.home}/.ant.properties"/>
+
     <!-- The build.properties file can be created by you and is never touched
          by activitycreator. If you want to manually set properties, this is
          the best place to set them. -->
@@ -374,6 +377,25 @@
             <formatter type="plain"/>
             <formatter type="xml" toFile="${reports.dir}/checkstyle.xml"/>
         </checkstyle>
+    </target>
+
+    <target name="add-build-info">
+        <replaceregexp file="AndroidManifest.xml"
+            match='versionName="([^-]*)(-.*)?">' replace='versionName="\1">'
+        />
+        <exec executable="svnversion" dir="." outputproperty="svn_revision"/>
+        <replaceregexp file="AndroidManifest.xml"
+            match='versionName="(.*)">' replace='versionName="\1-build-${svn_revision}">'
+        />
+    </target>
+
+    <target name="sign">
+        <signjar
+            alias="alias_name"
+            verbose="true"
+            keystore="${android.keystore.path}"
+            storepass="${android.keystore.password}"
+            jar="${out-debug-package}" />
     </target>
 
 </project>
