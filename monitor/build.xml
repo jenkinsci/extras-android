@@ -389,6 +389,12 @@
         />
     </target>
 
+    <target name="delete-build-info">
+        <replaceregexp file="AndroidManifest.xml"
+            match='versionName="([^-]*)(-.*)?">' replace='versionName="\1">'
+        />
+    </target>
+
     <target name="sign">
         <signjar
             alias="alias_name"
@@ -397,5 +403,7 @@
             storepass="${android.keystore.password}"
             jar="${out-debug-package}" />
     </target>
+
+    <target name="hudson-build" depends="clean, add-build-info, release-with-debug-info, sign, delete-build-info, pmd, findbugs, checkstyle" />
 
 </project>
