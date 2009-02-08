@@ -4,9 +4,6 @@
 package hudson.android.monitor;
 
 import hudson.android.monitor.model.FeedData;
-
-import java.util.Date;
-
 import net.jcip.annotations.GuardedBy;
 import android.app.Application;
 import android.content.Intent;
@@ -30,11 +27,12 @@ public class HudsonMonitorApplication extends Application {
 
     @Override
     public void onCreate() {
+        if (Config.LOGD) {
+            Log.d(Util.LOG_TAG, "HudsonMonitorApplication.onCreate");
+        }
+
         super.onCreate();
 
-        if (Config.LOGD) {
-            Log.d(Util.LOG_TAG, "Starting HudsonMonitorApplication at " + new Date().toLocaleString());
-        }
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         startService(new Intent(this, UpdateService.class));
@@ -42,6 +40,9 @@ public class HudsonMonitorApplication extends Application {
 
     @Override
     public void onTerminate() {
+        if (Config.LOGD) {
+            Log.d(Util.LOG_TAG, "HudsonMonitorApplication.onTerminate");
+        }
         super.onTerminate();
     }
 

@@ -4,6 +4,8 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.PreferenceScreen;
+import android.util.Config;
+import android.util.Log;
 
 /**
  *
@@ -42,6 +44,10 @@ public final class PreferencesActivity extends android.preference.PreferenceActi
 
     @Override
     protected void onCreate(final Bundle icicle) {
+        if (Config.LOGD) {
+            Log.d(Util.LOG_TAG, "PreferencesActivity.onCreate");
+        }
+
         super.onCreate(icicle);
 
         addPreferencesFromResource(R.xml.preferences);

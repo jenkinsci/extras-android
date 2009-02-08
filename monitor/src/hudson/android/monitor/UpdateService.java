@@ -74,7 +74,7 @@ public class UpdateService extends Service implements OnSharedPreferenceChangeLi
         super.onCreate();
 
         if (Config.LOGD) {
-            Log.d(Util.LOG_TAG, "Starting update service");
+            Log.d(Util.LOG_TAG, "UpdateService.onCreate");
         }
 
         initAlarms();
@@ -96,6 +96,10 @@ public class UpdateService extends Service implements OnSharedPreferenceChangeLi
 
     @Override
     public void onDestroy() {
+        if (Config.LOGD) {
+            Log.d(Util.LOG_TAG, "UpdateService.onDestroy");
+        }
+
         unregisterReceiver(alarmReceiver);
 
         backgroundExecutor.shutdownNow();
@@ -188,7 +192,7 @@ public class UpdateService extends Service implements OnSharedPreferenceChangeLi
 
     private void startUpdateCheck() {
         if (Config.LOGD) {
-            Log.d(Util.LOG_TAG, "Starting update check");
+            Log.d(Util.LOG_TAG, "UpdateService.startUpdateCheck");
         }
 
         lastUpdateCheckDate = System.currentTimeMillis();
@@ -239,7 +243,7 @@ public class UpdateService extends Service implements OnSharedPreferenceChangeLi
 
     private void startRefreshFeed() {
         if (Config.LOGD) {
-            Log.d(Util.LOG_TAG, "Starting refresh feed");
+            Log.d(Util.LOG_TAG, "UpdateService.startRefreshFeed");
         }
 
         // cancel any pending alarm as refresh may be activated early
@@ -381,6 +385,10 @@ public class UpdateService extends Service implements OnSharedPreferenceChangeLi
 
     @Override
     public void onStart(final Intent intent, final int startId) {
+        if (Config.LOGD) {
+            Log.d(Util.LOG_TAG, "UpdateService.onStart");
+        }
+
         super.onStart(intent, startId);
 
         startRefreshFeed();

@@ -46,7 +46,7 @@ public class FeedViewActivity extends ListActivity {
         super.onCreate(state);
 
         if (Config.LOGD) {
-            Log.d(Util.LOG_TAG, "Starting HudsonMonitor activity");
+            Log.d(Util.LOG_TAG, "FeedViewActivity.onCreate");
         }
 
         setContentView(R.layout.build_history);
@@ -62,6 +62,10 @@ public class FeedViewActivity extends ListActivity {
     }
 
     private void updateJobList() {
+        if (Config.LOGD) {
+            Log.d(Util.LOG_TAG, "FeedViewActivity.updateJobList");
+        }
+
         FeedData feedData = HudsonMonitorApplication.getFeedData();
 
         LinkedList<HashMap<String, Object>> list = new LinkedList<HashMap<String, Object>>();
@@ -110,11 +114,11 @@ public class FeedViewActivity extends ListActivity {
 
     @Override
     protected void onResume() {
-        super.onResume();
-
         if (Config.LOGD) {
-            Log.d(Util.LOG_TAG, "FeedViewActivity onResume");
+            Log.d(Util.LOG_TAG, "FeedViewActivity.onResume");
         }
+
+        super.onResume();
 
         IntentFilter filter;
         filter = new IntentFilter(UpdateService.NEW_FEED_DATA);
